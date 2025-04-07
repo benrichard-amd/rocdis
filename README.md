@@ -2,7 +2,7 @@
 
 ## POC ROCm dissassembler
 
-Usage:
+### Usage:
 
     rocdis [options] <input file>
     -d                       Disassemble
@@ -11,3 +11,8 @@ Usage:
     -l                       List kernels
     -k <index>               Disassemble specified kernel
     -o <output file>         used with -e
+
+### Dependencies
+    Python3
+    ROCm SDK
+    llvm
