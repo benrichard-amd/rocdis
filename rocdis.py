@@ -6,9 +6,6 @@ import getopt
 import shutil
 import os
 
-_print_lines = False
-_print_source = False
-
 def print_kernels(dis):
 
     kernels = dis.kernels()
@@ -16,25 +13,25 @@ def print_kernels(dis):
     for i in range(0, len(kernels)):
         print('{}  {}'.format(i, kernels[i]['name']))
 
-def pretty_print(dis, start, end):
+def pretty_print(dis, start, end, print_source, print_lines):
 
     for i in range(start, end+1):
         d = dis._data[i]
 
         if d['type'] == 'opcode':
-            print('    {0:32} {1}'.format(d['opcode'], d['args']))
+            print('        {0:32} {1}'.format(d['opcode'], d['args']))
         elif d['type'] == 'source':
-            if _print_source:
+            if print_source:
                 print(' {}'.format(d['value']))
         elif d['type'] == 'symbol':
             print('{}:'.format(d['symbol']))
         elif d['type'] == 'line_number':
-            if _print_lines:
+            if print_lines:
                 print('{}:{}'.format(d['file'], d['line']))
         else:
             print('UNKNOWN {}'.format(d))
 
-def print_disassembly(dis, k_idx):
+def print_disassembly(dis, k_idx, print_source, print_lines):
 
     start = 0
     end = len(dis._data) - 1
@@ -43,7 +40,7 @@ def print_disassembly(dis, k_idx):
         start = dis.kernels()[k_idx]['start']
         end = dis.kernels()[k_idx]['end']
 
-    pretty_print(dis, start, end)
+    pretty_print(dis, start, end, print_source, print_lines)
 
 
 
@@ -57,13 +54,15 @@ def print_usage():
     print('-h                 Show usage')
     print('-l                 List kernels')
     print('-k <index>         Disassemble specified kernel')
+    print('-s                 Print source (if available)')
+    print('-n                 Print line numbers (if available)')
     print('-o <output file>   used with -e')
     print('')
 
 def main():
 
     try:
-        opts, operands = getopt.getopt(sys.argv[1:], 'edk:lo:')
+        opts, operands = getopt.getopt(sys.argv[1:], 'edk:lo:sn')
     except getopt.GetoptError as err:
         print(err)
         return 1
@@ -72,6 +71,8 @@ def main():
     l_flag = False
     d_flag = False
     o_flag = False
+    s_flag = False
+    n_flag = False
     k_idx = -1
 
     output_file = None
@@ -88,6 +89,10 @@ def main():
         elif opt == '-o':
             output_file = arg
             o_flag = True
+        elif opt == '-s':
+            s_flag = True
+        elif opt == '-n':
+            n_flag = True
         else:
             print('error: unknown argument \'{}\''.format(opt))
             return 1
@@ -139,7 +144,7 @@ def main():
     if l_flag:
         print_kernels(dis)
     elif d_flag:
-        print_disassembly(dis, k_idx)
+        print_disassembly(dis, k_idx, s_flag, n_flag)
 
 if __name__ == "__main__":
     ret = main()
