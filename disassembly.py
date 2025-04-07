@@ -121,6 +121,7 @@ def parse_asm_line(line):
             # opcode
             return parse_opcode(line)
         else:
+            print('Warning: Unable to parse line {}'.format(line))
             return {'type':'UNKNOWN',
             'value':line
             }

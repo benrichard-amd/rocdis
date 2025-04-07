@@ -8,9 +8,7 @@ LLVM_OBJDUMP_PATH='/opt/rocm/llvm/bin/llvm-objdump'
 LLVM_CXXFILT_PATH='/usr/bin/llvm-cxxfilt'
 
 def run_cmd(args):
-
     output = subprocess.getoutput(' '.join(args))
-
     return output.splitlines()
 
 def get_file_format(file_path):
@@ -145,42 +143,62 @@ class AMDGPUDisassembly:
     _kernels = []
     _data = []
 
-    def __init__(self, data):
+    def __init__(self, data, kernel_names):
 
         self._data = data
+        self._kernels = []
 
         for i in range(0, len(self._data)):
-            
             if self._data[i]['type'] == 'symbol':
                 symbol = self._data[i]['symbol']
                 if symbol.startswith('<') and symbol.endswith('>'):
                     kernel_name_mangled = symbol[1:-1]
-                    kernel_name = demangle_name(kernel_name_mangled)
 
-                    # Find start and end idx
-                    start = i
-                    end = start
-                    while (end < len(self._data) - 1) and not (self._data[end]['type'] == 'opcode' and self._data[end]['opcode'] == 's_endpgm'):
-                        end = end + 1
-                    
-                    self._kernels.append({'name':kernel_name,
-                                          'mangled':kernel_name_mangled,
-                                          'start':start,
-                                          'end':end,
-                                          'id':i
-                                          })
+                    # Kernel with preloaded arguments
+                    if kernel_name_mangled.endswith('_preloaded'):
+                        kernel_name_mangled = kernel_name_mangled[:-10]
 
+                    if kernel_name_mangled in kernel_names:
+                        k = {}
+                        k['mangled'] = kernel_name_mangled
+                        k['name'] = demangle_name(kernel_name_mangled)
+                        k['start'] = i
+
+                        if len(self._kernels) > 0:
+                            self._kernels[-1]['end'] = i - 1
+                        self._kernels.append(k)
+
+        # Update end of last kernel
+        self._kernels[-1]['end'] = len(self._data) - 1
+    
     def kernels(self):
         return self._kernels
+
+# Parse the .rodata section and get names from kernel descriptors
+def get_kernel_names(obj):
+    args = [LLVM_OBJDUMP_PATH, '--disassemble', '--section=.rodata', obj.fname]
+    objdump_out = run_cmd(args)
+
+    kernels = []
+
+    for line in objdump_out:
+        if disassembly.is_symbol(line):
+            sym = disassembly.parse_symbol(line)
+            name = sym['symbol']
+            if name.startswith('<') and name.endswith('>'):
+
+                if name[-4:-1] == '.kd':
+                    kernels.append(name[1:-4])
+ 
+    return kernels
 
 
 def disassemble(obj):
 
-    args = [LLVM_OBJDUMP_PATH, '--source', '--disassemble', '--line-numbers', obj.fname]
-    objdump_out = subprocess.getoutput(' '.join(args))
+    kernels = get_kernel_names(obj)
 
-    # Break down by line
-    lines = objdump_out.splitlines()
+    args = [LLVM_OBJDUMP_PATH, '--source', '--disassemble', '--line-numbers', obj.fname]
+    lines = run_cmd(args)
 
     data = []
     for i in range(0, len(lines)):
@@ -188,7 +206,14 @@ def disassemble(obj):
 
         if len(line) == 0:
             continue
-        
+
+        # Skip objdump messages
+        if 'Disassembly of' in line:
+            continue
+        if 'file format' in line:
+            continue
+
         data.append(disassembly.parse_asm_line(line))
 
-    return AMDGPUDisassembly(data)
+
+    return AMDGPUDisassembly(data, kernels)
