@@ -213,6 +213,10 @@ def disassemble(obj):
         if 'file format' in line:
             continue
 
+        # Used to pad shader buffer on RDNA
+        if 's_code_end' in line:
+            continue
+
         data.append(disassembly.parse_asm_line(line))
 
 
