@@ -65,8 +65,7 @@ def extract_code_objects(file_path):
             found = True
 
     if not found:
-        print('Unable to find symbols in {}'.format(executable))
-        return None
+        raise Exception('{} does not contain an AMDGPU code object'.format(executable))
 
     # Read the HIP binary
     with open(executable, 'rb') as f:
@@ -117,8 +116,7 @@ def load_code_object(filename):
 
     format = get_file_format(executable)
     if format == None:
-        print('Unknown file format')
-        return None
+        raise Exception('Unknown file format')
     elif format == 'x86_64':
         objs = extract_code_objects(executable)
 

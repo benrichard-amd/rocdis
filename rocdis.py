@@ -47,16 +47,16 @@ def print_disassembly(dis, k_idx, print_source, print_lines):
 def print_usage():
     print('ROCm disassembler')
     print('')
-    print('USAGE: rocdis [options] <input file>')
+    print('USAGE: rocdis <option(s)> <file(s)>')
     print('')
     print('-d                 Disassemble')
+    print('-l                 List kernels')
     print('-e                 Extract AMDGPU object from x86-64 binary')
     print('-h                 Show usage')
-    print('-l                 List kernels')
     print('-k <index>         Disassemble specified kernel')
     print('-s                 Print source (if available)')
     print('-n                 Print line numbers (if available)')
-    print('-o <output file>   used with -e')
+    print('-o <file>          Write output to <file> (used with -e)')
     print('')
 
 def main():
@@ -67,9 +67,15 @@ def main():
         print(err)
         return 1
 
+    # Extract AMDGPU object
     e_flag = False
+
+    # List kernels
     l_flag = False
+
+    # Disassemble
     d_flag = False
+
     o_flag = False
     s_flag = False
     n_flag = False
@@ -111,6 +117,10 @@ def main():
         print_usage()
         return 1
 
+    if not e_flag and not d_flag and not l_flag:
+        print_usage()
+        return 1
+
     executable = operands[0]
 
     if not os.path.isfile(executable):
@@ -120,21 +130,21 @@ def main():
     try:
         obj = rocdislib.load_code_object(executable)
     except Exception as e:
-        print('error: {}'.format(repr(e)))
+        print('error: {}'.format(e))
         return 1
 
     if e_flag:
         try:
             shutil.copyfile(obj.fname, output_file)
         except Exception as e:
-            print('error: {}'.format(repr(e)))
+            print('error: {}'.format(e))
             return 1
         return 0
 
     try:
         dis = rocdislib.disassemble(obj)
     except Exception as e:
-        print('error: {}'.format(repr(e)))
+        print('error: {}'.format(e))
         return 1
 
     if k_idx >= len(dis.kernels()):
