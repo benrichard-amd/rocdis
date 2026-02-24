@@ -18,10 +18,15 @@
 ### Dependencies
 ```
     Python3
-    ROCm SDK    (for AMDGPU llvm-objdump)
-    llvm        (for llvm-cxxfilt)
-    g++         (for objdump)
+    ROCm SDK      (for AMDGPU llvm-objdump)
+    clang-tools   (for llvm-cxxfilt)
+    g++           (for objdump)
 ```
+
+The tool will look for the path to `llvm-cxxfilt` in the following order:
+1. `LLVM_CXXFILT` environment variable
+2. System path
+3. `/opt/rocm/llvm/bin/llvm-cxxfilt`
 
 ### Samples
 

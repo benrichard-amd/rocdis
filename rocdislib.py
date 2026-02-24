@@ -8,7 +8,11 @@ LLVM_OBJDUMP_PATH='/opt/rocm/llvm/bin/llvm-objdump'
 
 def locate_cxxfilt():
 
-    # Check PATH first
+    # Check environment
+    if 'LLVM_CXXFILT' in os.environ:
+        return os.getenv('LLVM_CXXFILT')
+
+    # Check system PATH
     path_hit = shutil.which('llvm-cxxfilt')
     if path_hit:
         return os.path.realpath(path_hit)
