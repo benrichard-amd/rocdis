@@ -5,7 +5,7 @@ import random
 import disassembly
 
 LLVM_OBJDUMP_PATH='/opt/rocm/llvm/bin/llvm-objdump'
-LLVM_CXXFILT_PATH='/usr/bin/llvm-cxxfilt'
+LLVM_CXXFILT_PATH='/usr/bin/llvm/bin/llvm-cxxfilt'
 
 def run_cmd(args):
     output = subprocess.getoutput(' '.join(args))
