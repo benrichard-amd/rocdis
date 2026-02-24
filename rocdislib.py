@@ -145,7 +145,7 @@ def demangle_name(name):
     cxxfilt = locate_cxxfilt()
 
     if not cxxfilt:
-        raise 'llvm-cxxfilt not found on system'
+        raise Exception('llvm-cxxfilt not found on system')
 
     args = [cxxfilt, name]
 
