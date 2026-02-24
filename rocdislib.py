@@ -1,11 +1,23 @@
 import subprocess
 import os
 import random
-
+import shutil
 import disassembly
 
 LLVM_OBJDUMP_PATH='/opt/rocm/llvm/bin/llvm-objdump'
-LLVM_CXXFILT_PATH='/opt/rocm/llvm/bin/llvm-cxxfilt'
+
+def locate_cxxfilt():
+
+    # Check PATH first
+    path_hit = shutil.which('llvm-cxxfilt')
+    if path_hit:
+        return os.path.realpath(path_hit)
+    
+    # Check /opt/rocm/llvm/bin
+    if os.path.isfile('/opt/rocm/llvm/bin/llvm-cxxfilt'):
+        return '/opt/rocm/llvm/bin/llvm-cxxfilt'
+    
+    return None
 
 def run_cmd(args):
     output = subprocess.getoutput(' '.join(args))
@@ -130,7 +142,12 @@ def load_code_object(filename):
     return code_object
 
 def demangle_name(name):
-    args = [LLVM_CXXFILT_PATH, name]
+    cxxfilt = locate_cxxfilt()
+
+    if not cxxfilt:
+        raise 'llvm-cxxfilt not found on system'
+
+    args = [cxxfilt, name]
 
     demangled = run_cmd(args)[0]
 
