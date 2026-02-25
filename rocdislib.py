@@ -101,7 +101,7 @@ def extract_code_objects(file_path):
 
     start = 24 + 8
     cur_offset = start
-    for idx in range(0, num_entries):
+    for _ in range(0, num_entries):
         entry_offset = int.from_bytes(data[cur_offset:][:8], 'little')
         cur_offset += 8
     

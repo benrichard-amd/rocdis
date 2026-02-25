@@ -9,10 +9,13 @@
    -e                       Extract AMDGPU object from x86-64 binary
    -h                       Show usage
    -l                       List kernels
-   -s                       Print source (if available)
-   -n                       Print line numbers (if available)
    -k <index>               Disassemble specified kernel
    -o <output file>         used with -e
+
+   Used with -d:
+   -a                       Print addresses
+   -s                       Print source (if available)
+   -n                       Print line numbers (if available)
 ```
 
 ### Dependencies

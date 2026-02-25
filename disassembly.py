@@ -92,7 +92,7 @@ def parse_opcode(s):
     return {
         'type':'opcode',
         'opcode':opcode,
-        'addr':addr,
+        'address':addr,
         'args':args,
         'encoding':encoding
     }

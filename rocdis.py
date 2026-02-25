@@ -13,13 +13,13 @@ def print_kernels(dis):
     for i in range(0, len(kernels)):
         print('{}  {}'.format(i, kernels[i]['name']))
 
-def pretty_print(dis, start, end, print_source, print_lines):
+def pretty_print(dis, start, end, print_source, print_lines, print_address):
 
     for i in range(start, end+1):
         d = dis._data[i]
-
         if d['type'] == 'opcode':
-            print('        {0:32} {1}'.format(d['opcode'], d['args']))
+            addr = f"{d['address']:x}" if print_address else ''
+            print('{}        {:32} {}'.format(addr, d['opcode'], d['args']))
         elif d['type'] == 'source':
             if print_source:
                 print(' {}'.format(d['value']))
@@ -31,7 +31,7 @@ def pretty_print(dis, start, end, print_source, print_lines):
         else:
             print('UNKNOWN {}'.format(d))
 
-def print_disassembly(dis, k_idx, print_source, print_lines):
+def print_disassembly(dis, k_idx, print_source, print_lines, print_address):
 
     start = 0
     end = len(dis._data) - 1
@@ -40,7 +40,7 @@ def print_disassembly(dis, k_idx, print_source, print_lines):
         start = dis.kernels()[k_idx]['start']
         end = dis.kernels()[k_idx]['end']
 
-    pretty_print(dis, start, end, print_source, print_lines)
+    pretty_print(dis, start, end, print_source, print_lines, print_address)
 
 
 
@@ -54,18 +54,25 @@ def print_usage():
     print('-e                 Extract AMDGPU object from x86-64 binary')
     print('-h                 Show usage')
     print('-k <index>         Disassemble specified kernel')
+    print('-o <file>          Write output to <file> (used with -e)')
+    print('')
+    print('Used with -d:')
+    print('-a                 Print address')
     print('-s                 Print source (if available)')
     print('-n                 Print line numbers (if available)')
-    print('-o <file>          Write output to <file> (used with -e)')
+
     print('')
 
 def main():
 
     try:
-        opts, operands = getopt.getopt(sys.argv[1:], 'edk:lo:sn')
+        opts, operands = getopt.getopt(sys.argv[1:], 'aedk:lo:sn')
     except getopt.GetoptError as err:
         print(err)
         return 1
+
+    # Address flag
+    a_flag = False
 
     # Extract AMDGPU object
     e_flag = False
@@ -84,7 +91,9 @@ def main():
     output_file = None
 
     for opt, arg in opts:
-        if opt == '-e':
+        if opt == '-a':
+            a_flag = True
+        elif opt == '-e':
             e_flag = True
         elif opt == '-l':
             l_flag = True
@@ -154,7 +163,7 @@ def main():
     if l_flag:
         print_kernels(dis)
     elif d_flag:
-        print_disassembly(dis, k_idx, s_flag, n_flag)
+        print_disassembly(dis, k_idx, s_flag, n_flag, a_flag)
 
 if __name__ == "__main__":
     ret = main()
